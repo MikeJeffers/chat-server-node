@@ -66,8 +66,8 @@ const startServer = async (port) => {
    */
   const addUser = (token, name, socketId, userId) => {
     users[userId] = {id: `${userId}`, name, token, socketId};
-    broadcast(server, {command:'USER_JOIN', user:userToClient(users[socketId])});
-    return users[socketId];
+    broadcast(server, {command:'USER_JOIN', user:userToClient(users[userId])});
+    return users[userId];
   }
   /**
    * 
@@ -121,6 +121,7 @@ const startServer = async (port) => {
             break;
         }
       } catch (e) {
+        console.log(e)
         //TODO only send "user" errors
         socket.send(JSON.stringify({ command: 'ERROR', message: e.message}));
       }
@@ -157,6 +158,7 @@ const startServer = async (port) => {
           send(socket, data.socketId, 'ACK', { messages, users: Object.values(users).map(userToClient) });
         }
       } catch (e) {
+        console.log(e)
         //TODO only send "user" errors
         socket.send(JSON.stringify({ command: 'ERROR', message: e.message}));
       }
