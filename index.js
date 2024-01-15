@@ -1,6 +1,8 @@
 //@ts-check 
+require('./preload');
 const ws = require('ws');
 const { send, broadcast } = require('./send');
+const auth = require('./auth');
 
 
 const startServer = async (port) => {
@@ -26,7 +28,7 @@ const startServer = async (port) => {
   }
 
   /**
-   * @typedef {{id:string, name:string, token:string}} User
+   * @typedef {{id:string, name:string, token:string, socketId:string}} User
    * @typedef {{message:string, at:Date, from:string}} Message
    */
 
@@ -39,10 +41,10 @@ const startServer = async (port) => {
   const userToClient = (user) =>({name:user.name, id:user.id});
 
   /**
-   * @param {string} name
+   * @param {string|number} id
    * @returns {User|undefined}
    */
-  const userOfName = (name) => Object.values(users).find(u=>u.name==name);
+  const userById = (id) => users[id];
   /**
    * 
    * @param {string} id 
@@ -56,23 +58,14 @@ const startServer = async (port) => {
     return delete users[id];
   }
   /**
-   * MOCK - TODO user register/login api
-   * @param {string} token 
-   * @param {string} name 
-   * @returns {boolean}
-   */
-  const authUser = (token, name) => {
-    const sameName = userOfName(name);
-    return sameName?.name!=token;
-  }
-  /**
    * 
    * @param {string} token 
    * @param {string} name 
    * @param {string} socketId
+   * @param {number} userId
    */
-  const addUser = (token, name, socketId) => {
-    users[socketId] = {id:socketId, name, token};
+  const addUser = (token, name, socketId, userId) => {
+    users[userId] = {id: `${userId}`, name, token, socketId};
     broadcast(server, {command:'USER_JOIN', user:userToClient(users[socketId])});
     return users[socketId];
   }
@@ -100,7 +93,7 @@ const startServer = async (port) => {
 
     const onPlayerSocketClose = async (data) => {
       console.log(`User ${user.id} disconnected`);
-      removeUser(socketId);
+      removeUser(user.id);
       if (!data.wasClean) {
         console.warn('UNCLEAN SOCKET CLOSURE');
       }
@@ -147,14 +140,19 @@ const startServer = async (port) => {
         const data = JSON.parse(message.data);
         const command = data.command;
         if (command === 'AUTH') {
-          if (!data.token || !data.name || !data.socketId){
+          if (!data.token || !data.socketId){
             throw new Error('Missing data for auth')
           }
-          const success = authUser(data.token, data.name);
-          if (!success) {
+          const userData = await auth(data.token);
+          if (!userData) {
             throw new Error('Auth failed');
           }
-          const user = addUser(data.token, data.name, data.socketId);
+          const connectedUser = userById(userData.id);
+          if(connectedUser){
+            console.log(`User is already connected! Booting old connection for ${JSON.stringify(connectedUser)}`);
+            removeUser(connectedUser.id);
+          }
+          const user = addUser(data.token, userData.username, data.socketId, userData.id);
           await messageHandlers(socket, data.socketId, data.token, user);
           send(socket, data.socketId, 'ACK', { messages, users: Object.values(users).map(userToClient) });
         }
