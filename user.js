@@ -28,11 +28,11 @@ const getById = async (id) => {
 
 /**
  * 
- * @param {string} email 
+ * @param {string} username 
  * @returns {Promise<Object?>}
  */
-const getByUsername = async (email) => {
-  const data = (await sql`SELECT * FROM ${sql(TABLE_NAME)} WHERE username=${email} LIMIT 1`)[0];
+const getByUsername = async (username) => {
+  const data = (await sql`SELECT * FROM ${sql(TABLE_NAME)} WHERE username=${username} LIMIT 1`)[0];
   if (!data) { return null; }
   return data;
 }
