@@ -20,7 +20,7 @@ const startServer = async (port) => {
   server.on('listening', (m) => {
     console.log(`[WS] onListening`, m);
   });
-  
+
 
   const close = () => {
     server.clients.forEach(c => c.close(1001, 'Server closing'));
@@ -38,7 +38,7 @@ const startServer = async (port) => {
   /** @type {Object<string, User>} */
   const users = {};
 
-  const userToClient = (user) =>({name:user.name, id:user.id});
+  const userToClient = (user) => ({ name: user.name, id: user.id });
 
   /**
    * @param {string|number} id
@@ -51,10 +51,10 @@ const startServer = async (port) => {
    * @returns {boolean}
    */
   const removeUser = (id) => {
-    if (!users[id]){
+    if (!users[id]) {
       return false;
     }
-    broadcast(server, {command:'USER_LEAVE', user:userToClient(users[id])});
+    broadcast(server, { command: 'USER_LEAVE', user: userToClient(users[id]) });
     return delete users[id];
   }
   /**
@@ -65,8 +65,8 @@ const startServer = async (port) => {
    * @param {number} userId
    */
   const addUser = (token, name, socketId, userId) => {
-    users[userId] = {id: `${userId}`, name, token, socketId};
-    broadcast(server, {command:'USER_JOIN', user:userToClient(users[userId])});
+    users[userId] = { id: `${userId}`, name, token, socketId };
+    broadcast(server, { command: 'USER_JOIN', user: userToClient(users[userId]) });
     return users[userId];
   }
   /**
@@ -75,12 +75,12 @@ const startServer = async (port) => {
    * @param {User} user 
    */
   const addMessage = (content, user) => {
-    const message = {message:content, from:user.name, at:new Date()};
+    const message = { message: content, from: user.name, at: new Date() };
     messages.push(message);
-    if(messages.length > 10){
+    if (messages.length > 10) {
       messages.shift();
     }
-    broadcast(server, {command:'MESSAGE_ADD', message});
+    broadcast(server, { command: 'MESSAGE_ADD', message });
   }
 
   /**
@@ -107,12 +107,12 @@ const startServer = async (port) => {
         const command = data.command;
         console.log(`Received: ${command}`);
         switch (command) {
-          case 'SEND_MESSAGE':{
+          case 'SEND_MESSAGE': {
             //TODO validate message content
             addMessage(data.message, user);
             break;
           }
-          case 'REFRESH':{
+          case 'REFRESH': {
             send(socket, socketId, 'ACK', { messages, users: Object.values(users).map(userToClient) });
             break;
           }
@@ -123,7 +123,7 @@ const startServer = async (port) => {
       } catch (e) {
         console.log(e)
         //TODO only send "user" errors
-        socket.send(JSON.stringify({ command: 'ERROR', message: e.message}));
+        socket.send(JSON.stringify({ command: 'ERROR', message: e.message }));
       }
     };
     socket.onmessage = onMessage;
@@ -141,7 +141,7 @@ const startServer = async (port) => {
         const data = JSON.parse(message.data);
         const command = data.command;
         if (command === 'AUTH') {
-          if (!data.token || !data.socketId){
+          if (!data.token || !data.socketId) {
             throw new Error('Missing data for auth')
           }
           const userData = await auth(data.token);
@@ -149,7 +149,7 @@ const startServer = async (port) => {
             throw new Error('Auth failed');
           }
           const connectedUser = userById(userData.id);
-          if(connectedUser){
+          if (connectedUser) {
             console.log(`User is already connected! Booting old connection for ${JSON.stringify(connectedUser)}`);
             removeUser(connectedUser.id);
           }
@@ -160,12 +160,12 @@ const startServer = async (port) => {
       } catch (e) {
         console.log(e)
         //TODO only send "user" errors
-        socket.send(JSON.stringify({ command: 'ERROR', message: e.message}));
+        socket.send(JSON.stringify({ command: 'ERROR', message: e.message }));
       }
     }
   };
   server.on('connection', connectionHandler);
-  return {close, address:()=>server.address()};
+  return { close, address: () => server.address() };
 }
 
 const start = async () => {

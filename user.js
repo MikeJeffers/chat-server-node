@@ -10,9 +10,9 @@ const TABLE_NAME = 'users';
 * @returns {Promise<Object?>}
 */
 const createUser = async (user) => {
- const data =  (await sql`INSERT INTO ${sql(TABLE_NAME)} ${sql(user)} RETURNING *`)[0];
- if (!data) {return null}
- return data;
+  const data = (await sql`INSERT INTO ${sql(TABLE_NAME)} ${sql(user)} RETURNING *`)[0];
+  if (!data) { return null }
+  return data;
 }
 
 /**
@@ -23,7 +23,7 @@ const createUser = async (user) => {
 const getById = async (id) => {
   const data = (await sql`SELECT * FROM ${sql(TABLE_NAME)} WHERE id=${id}`)[0];
   if (!data) { return null; }
-  return data
+  return data;
 }
 
 /**
@@ -34,7 +34,7 @@ const getById = async (id) => {
 const getByUsername = async (email) => {
   const data = (await sql`SELECT * FROM ${sql(TABLE_NAME)} WHERE username=${email} LIMIT 1`)[0];
   if (!data) { return null; }
-  return data
+  return data;
 }
 
 

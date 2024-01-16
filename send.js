@@ -30,4 +30,4 @@ const broadcast = (server, jsonMessage) => {
 const serializeObj = (json) => JSON.stringify(json);
 
 
-module.exports = {send, broadcast};
+module.exports = { send, broadcast };
