@@ -1,7 +1,6 @@
 //@ts-check
 const jwt = require("jsonwebtoken");
 const Redis = require('./redis');
-const USER = require('./user');
 
 /**
  * 
@@ -15,5 +14,5 @@ module.exports = async (token) => {
   if (fetchedToken != token) {
     throw new Error('bad token');
   }
-  return await USER.getById(decoded.id);
+  return {id:decoded.id, username:decoded.username};
 };
