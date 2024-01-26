@@ -4,6 +4,7 @@ const ws = require('ws');
 const { send, broadcast } = require('./send');
 const auth = require('./auth');
 
+const MAX_MESSAGES = 50;
 
 const startServer = async (port) => {
   const server = new ws.Server({ port });
@@ -77,7 +78,7 @@ const startServer = async (port) => {
   const addMessage = (content, user) => {
     const message = { message: content, from: user.name, at: new Date() };
     messages.push(message);
-    if (messages.length > 10) {
+    if (messages.length > MAX_MESSAGES) {
       messages.shift();
     }
     broadcast(server, { command: 'MESSAGE_ADD', message });
